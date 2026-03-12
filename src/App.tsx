@@ -104,7 +104,7 @@ export default function App() {
     const y = e.clientY - rect.top
     const level = sceneRef.current.estimateMipLevelAtScreen(
       x, y,
-      canvasRef.current.width, canvasRef.current.height,
+      rect.width, rect.height,
       activeTexture.width
     )
     setCursorMipLevel(level !== null ? Math.max(0, level) : null)

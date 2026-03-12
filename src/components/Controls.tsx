@@ -57,6 +57,7 @@ export function Controls() {
           label="MIP LEVELS"
           onClick={() => setViewMode('levels')}
           position="right"
+          disabled={filterMode !== 'trilinear'}
         />
       </div>
 
@@ -147,23 +148,27 @@ function ModeButton({
   label,
   onClick,
   position,
+  disabled,
 }: {
   active: boolean
   label: string
   onClick: () => void
   position: 'left' | 'middle' | 'right'
+  disabled?: boolean
 }) {
   return (
     <button
       onClick={onClick}
+      disabled={disabled}
       className="px-4 py-1.5 text-xs font-bold uppercase transition-transform"
       style={{
         border: 'var(--border)',
         borderRight: position === 'right' ? 'var(--border)' : 'none',
-        background: active ? '#111' : '#FFF',
-        color: active ? '#FFF' : '#111',
+        background: disabled ? '#E0E0E0' : active ? '#111' : '#FFF',
+        color: disabled ? '#999' : active ? '#FFF' : '#111',
         boxShadow: active ? 'none' : undefined,
         transform: active ? 'translate(1px, 1px)' : 'none',
+        cursor: disabled ? 'not-allowed' : 'pointer',
       }}
     >
       {label}

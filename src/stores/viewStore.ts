@@ -25,7 +25,10 @@ export const useViewStore = create<ViewState>((set) => ({
   sceneType: 'plane',
   setSceneType: (s) => set({ sceneType: s }),
   filterMode: 'trilinear',
-  setFilterMode: (f) => set({ filterMode: f }),
+  setFilterMode: (f) => set((state) => ({
+    filterMode: f,
+    viewMode: f !== 'trilinear' && state.viewMode === 'levels' ? 'textured' : state.viewMode,
+  })),
   cameraAngle: 0.55,
   setCameraAngle: (a) => set({ cameraAngle: a }),
   hoveredLevel: null,
