@@ -115,10 +115,7 @@ export default function App() {
         className="flex items-center justify-between px-6 py-3"
         style={{ borderBottom: 'var(--border)' }}
       >
-        <div className="flex items-center gap-4">
-          <h1 className="text-xl font-bold tracking-tight uppercase">Mipmap Explorer</h1>
-          <span className="text-xs opacity-50">CS248A — Texture Mapping</span>
-        </div>
+        <h1 className="text-2xl font-bold tracking-tight uppercase">Mipmap Explorer</h1>
         <PresetBar onSelect={loadPreset} />
       </header>
 
@@ -126,7 +123,7 @@ export default function App() {
       <div className="flex-1 flex min-h-0">
         {/* 3D viewport */}
         <div className="flex-1 flex flex-col min-w-0">
-          <div ref={containerRef} className="flex-1 relative min-h-0">
+          <div ref={containerRef} className="flex-1 relative min-h-0" style={{ borderRight: '1px solid #ddd', background: '#f0f0eb' }}>
             <canvas
               ref={canvasRef}
               className="block w-full h-full"
@@ -141,7 +138,7 @@ export default function App() {
 
         {/* Mipmap pyramid sidebar */}
         <aside
-          className="w-[220px] min-w-[220px] flex flex-col overflow-y-auto"
+          className="w-[240px] min-w-[240px] flex flex-col overflow-y-auto"
           style={{
             borderLeft: 'var(--border)',
             background: 'var(--bg-card)',
@@ -169,7 +166,8 @@ function PresetBar({ onSelect }: { onSelect: (name: PresetName) => void }) {
   ]
 
   return (
-    <div className="flex gap-2">
+    <div className="flex items-center gap-2">
+      <span className="text-[10px] font-bold uppercase opacity-40 mr-1">Texture</span>
       {presets.map(p => (
         <button
           key={p.id}

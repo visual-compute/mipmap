@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useViewStore } from '../stores/viewStore'
 import { useTextureLoader } from '../hooks/useTextureLoader'
 
@@ -6,6 +6,7 @@ export function Controls() {
   const { viewMode, setViewMode, sceneType, setSceneType } = useViewStore()
   const { loadFromFile } = useTextureLoader()
   const fileRef = useRef<HTMLInputElement>(null)
+  const [showHelp, setShowHelp] = useState(false)
 
   const handleFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -22,7 +23,7 @@ export function Controls() {
 
   return (
     <div
-      className="flex items-center gap-6 px-6 py-3"
+      className="flex items-center gap-4 px-6 py-3"
       style={{ borderTop: 'var(--border)', background: 'var(--bg-card)' }}
       onDragOver={e => e.preventDefault()}
       onDrop={handleDrop}
@@ -59,9 +60,6 @@ export function Controls() {
         />
       </div>
 
-      {/* Drag hint */}
-      <span className="text-[10px] opacity-40">drag orbit · right-drag pan · scroll zoom · WASD move · QE up/down</span>
-
       {/* Upload button */}
       <button
         onClick={() => fileRef.current?.click()}
@@ -82,8 +80,42 @@ export function Controls() {
         className="hidden"
       />
 
-      {/* Legend in levels mode */}
-      {viewMode === 'levels' && <LevelLegend />}
+      {/* Spacer */}
+      <div className="flex-1" />
+
+      {/* Help button with tooltip */}
+      <div className="relative">
+        <button
+          onMouseEnter={() => setShowHelp(true)}
+          onMouseLeave={() => setShowHelp(false)}
+          className="w-7 h-7 text-xs font-bold flex items-center justify-center transition-transform active:translate-x-[1px] active:translate-y-[1px]"
+          style={{
+            border: 'var(--border)',
+            boxShadow: 'var(--shadow-sm)',
+            background: '#FFF',
+          }}
+        >
+          ?
+        </button>
+        {showHelp && (
+          <div
+            className="absolute bottom-full right-0 mb-2 px-4 py-3 text-[11px] whitespace-nowrap"
+            style={{
+              border: 'var(--border)',
+              boxShadow: 'var(--shadow)',
+              background: 'var(--bg-card)',
+              zIndex: 50,
+            }}
+          >
+            <p className="font-bold mb-1.5 text-xs uppercase">Controls</p>
+            <p>Drag to orbit</p>
+            <p>Right-drag to pan</p>
+            <p>Scroll to zoom</p>
+            <p>WASD to move</p>
+            <p>Q/E for up/down</p>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -114,31 +146,5 @@ function ModeButton({
     >
       {label}
     </button>
-  )
-}
-
-const LEGEND_COLORS = [
-  '#FF3E3E', '#FF8C00', '#FFD600', '#00C853',
-  '#00BCD4', '#2962FF', '#7C4DFF', '#FF4081',
-]
-
-function LevelLegend() {
-  return (
-    <div className="flex items-center gap-1 ml-auto">
-      <span className="text-[10px] font-bold uppercase mr-1 opacity-50">Levels:</span>
-      {LEGEND_COLORS.map((c, i) => (
-        <div
-          key={i}
-          className="w-4 h-4 flex items-center justify-center text-[8px] font-bold"
-          style={{
-            background: c,
-            border: '1.5px solid #111',
-            color: i >= 4 && i <= 6 ? '#FFF' : '#111',
-          }}
-        >
-          {i}
-        </div>
-      ))}
-    </div>
   )
 }

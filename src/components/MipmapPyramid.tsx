@@ -7,19 +7,26 @@ const LEVEL_COLORS = [
   '#00BCD4', '#2962FF', '#7C4DFF', '#FF4081',
 ]
 
+const MAX_THUMB = 48
+const MIN_THUMB = 12
+
 export function MipmapPyramid() {
   const { mipmapPyramid } = useTextureStore()
   const { hoveredLevel, setHoveredLevel, cursorMipLevel } = useViewStore()
 
-  // Which level is highlighted from hovering the 3D view?
   const activeFromCursor = cursorMipLevel !== null ? Math.round(cursorMipLevel) : null
+  const totalLevels = mipmapPyramid.length
 
   return (
-    <div className="flex-1 p-3 space-y-2 overflow-y-auto">
+    <div className="flex-1 p-3 space-y-1.5 overflow-y-auto">
       {mipmapPyramid.map((level, i) => {
         const isHoveredFromPyramid = hoveredLevel === i
         const isHighlightedFromCursor = activeFromCursor === i && hoveredLevel === null
         const color = LEVEL_COLORS[Math.min(i, LEVEL_COLORS.length - 1)]
+
+        // Scale thumbnail size: level 0 gets MAX_THUMB, last level gets MIN_THUMB
+        const t = totalLevels > 1 ? i / (totalLevels - 1) : 0
+        const thumbSize = Math.round(MAX_THUMB - t * (MAX_THUMB - MIN_THUMB))
 
         return (
           <div
@@ -41,24 +48,19 @@ export function MipmapPyramid() {
             <div className="flex items-center gap-3 p-2">
               {/* Color dot */}
               <div
-                className="w-4 h-4 flex-shrink-0"
+                className="w-3 h-3 flex-shrink-0"
                 style={{
                   border: '2px solid #111',
                   background: color,
                 }}
               />
 
-              {/* Thumbnail */}
-              <MipThumb data={level.data} />
+              {/* Thumbnail — scaled per level */}
+              <MipThumb data={level.data} size={thumbSize} />
 
               {/* Info */}
               <div className="flex-1 min-w-0">
-                <p
-                  className="text-xs font-bold"
-                  style={{
-                    color: isHoveredFromPyramid ? '#111' : '#111',
-                  }}
-                >
+                <p className="text-xs font-bold">
                   LEVEL {i}
                 </p>
                 <p
@@ -78,7 +80,7 @@ export function MipmapPyramid() {
   )
 }
 
-function MipThumb({ data }: { data: ImageData }) {
+function MipThumb({ data, size }: { data: ImageData; size: number }) {
   const ref = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
@@ -94,8 +96,8 @@ function MipThumb({ data }: { data: ImageData }) {
       ref={ref}
       className="flex-shrink-0"
       style={{
-        width: 36,
-        height: 36,
+        width: size,
+        height: size,
         imageRendering: 'pixelated',
         border: '2px solid #111',
       }}
