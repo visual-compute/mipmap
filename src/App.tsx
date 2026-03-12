@@ -19,7 +19,7 @@ export default function App() {
   const sceneRef = useRef<TexturedPlaneScene | null>(null)
 
   const { mipmapPyramid, activeTexture } = useTextureStore()
-  const { viewMode, hoveredLevel, setCursorMipLevel, sceneType } = useViewStore()
+  const { viewMode, hoveredLevel, setCursorMipLevel, sceneType, filterMode } = useViewStore()
   const { loadPreset } = useTextureLoader()
 
   // Boot scene
@@ -79,6 +79,12 @@ export default function App() {
     sceneRef.current.setSceneType(sceneType)
   }, [sceneType])
 
+  // Filter mode
+  useEffect(() => {
+    if (!sceneRef.current) return
+    sceneRef.current.setFilterMode(filterMode)
+  }, [filterMode])
+
   // Hovered pyramid level → lock the 3D view
   useEffect(() => {
     if (!sceneRef.current) return
@@ -132,6 +138,21 @@ export default function App() {
               onMouseLeave={handleCanvasMouseLeave}
             />
             <MipLevelTooltip />
+            {filterMode !== 'trilinear' && (
+              <div
+                className="absolute top-4 right-4 px-3 py-2 text-xs font-bold uppercase pointer-events-none"
+                style={{
+                  border: 'var(--border)',
+                  background: filterMode === 'point' ? '#FF3E3E' : '#FF8C00',
+                  color: '#FFF',
+                  zIndex: 11,
+                }}
+              >
+                {filterMode === 'point'
+                  ? 'Point sampling — no filtering, no mipmaps'
+                  : 'Bilinear only — no mipmaps'}
+              </div>
+            )}
           </div>
           <Controls />
         </div>

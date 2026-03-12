@@ -6,7 +6,7 @@ import { generateCheckerboard, generateUVGrid, generateTiny4x4, generateFabricTe
 export type PresetName = 'checkerboard' | 'uv_grid' | 'fabric' | 'tiny_4x4'
 
 const presetGenerators: Record<PresetName, () => ImageData> = {
-  checkerboard: () => generateCheckerboard(256, 8),
+  checkerboard: () => generateCheckerboard(512, 32),
   uv_grid: () => generateUVGrid(256),
   fabric: () => generateFabricTexture(256),
   tiny_4x4: () => generateTiny4x4(),

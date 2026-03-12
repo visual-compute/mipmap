@@ -1,17 +1,26 @@
-export function generateCheckerboard(size: number = 256, squares: number = 8): ImageData {
+export function generateCheckerboard(size: number = 512, gridLines: number = 32): ImageData {
   const data = new Uint8ClampedArray(size * size * 4)
-  const blockSize = size / squares
+  const cellSize = size / gridLines
+  const lineWidth = Math.max(2, Math.round(cellSize * 0.15))
 
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
-      const cx = Math.floor(x / blockSize)
-      const cy = Math.floor(y / blockSize)
-      const isWhite = (cx + cy) % 2 === 0
       const i = (y * size + x) * 4
-      const v = isWhite ? 255 : 30
-      data[i] = v
-      data[i + 1] = v
-      data[i + 2] = v
+      const inLineX = (x % cellSize) < lineWidth
+      const inLineY = (y % cellSize) < lineWidth
+      const isLine = inLineX || inLineY
+
+      if (isLine) {
+        // Light blue grid line
+        data[i] = 100
+        data[i + 1] = 160
+        data[i + 2] = 255
+      } else {
+        // Black cell
+        data[i] = 5
+        data[i + 1] = 5
+        data[i + 2] = 10
+      }
       data[i + 3] = 255
     }
   }

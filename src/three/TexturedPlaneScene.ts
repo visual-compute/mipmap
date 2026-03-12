@@ -50,12 +50,15 @@ export class TexturedPlaneScene {
   private sceneEdges: THREE.LineSegments[] = []
   private planeEdge: THREE.LineSegments | null = null
   private currentSceneType: 'plane' | '3d' = 'plane'
+  private currentFilterMode: 'point' | 'bilinear' | 'trilinear' = 'trilinear'
+  private pointMaterial: THREE.ShaderMaterial | null = null
+  private bilinearMaterial: THREE.ShaderMaterial | null = null
 
   // Orbit state
   private orbitTheta = 0
-  private orbitPhi = 0.55
+  private orbitPhi = 0.3
   private orbitDist = 3
-  private orbitTarget = new THREE.Vector3(0, 0, -1.5)
+  private orbitTarget = new THREE.Vector3(0, 0, 0)
   private isDragging = false
   private isPanning = false
   private lastMouseX = 0
@@ -200,6 +203,20 @@ export class TexturedPlaneScene {
   updateMipmaps(levels: MipmapLevel[]) {
     this.mipmapTextures.forEach(t => t.dispose())
     this.mipmapTextures = levels.map(l => createDataTexture(l.data))
+    this.rebuildFilterMaterials()
+  }
+
+  private rebuildFilterMaterials() {
+    this.pointMaterial?.dispose()
+    this.bilinearMaterial?.dispose()
+    this.pointMaterial = createSamplingMaterial('noMip', this.mipmapTextures, {
+      totalLevels: this.mipmapTextures.length,
+      filterMode: 0,
+    })
+    this.bilinearMaterial = createSamplingMaterial('noMip', this.mipmapTextures, {
+      totalLevels: this.mipmapTextures.length,
+      filterMode: 1,
+    })
   }
 
   setMode(mode: SamplingMode, options?: {
@@ -254,8 +271,27 @@ export class TexturedPlaneScene {
     this.renderer.setSize(width, height)
   }
 
+  setFilterMode(mode: 'point' | 'bilinear' | 'trilinear') {
+    if (mode === this.currentFilterMode) return
+    this.currentFilterMode = mode
+    if (mode === 'point' && this.pointMaterial) {
+      this.swapMaterial(this.pointMaterial)
+    } else if (mode === 'bilinear' && this.bilinearMaterial) {
+      this.swapMaterial(this.bilinearMaterial)
+    } else {
+      this.swapMaterial(this.material)
+    }
+  }
+
   render() {
     this.renderer.render(this.scene, this.camera)
+  }
+
+  private swapMaterial(mat: THREE.ShaderMaterial) {
+    this.plane.material = mat
+    for (const mesh of this.sceneMeshes) {
+      mesh.material = mat
+    }
   }
 
   enableKeyboard(canvas: HTMLCanvasElement) {
@@ -327,6 +363,8 @@ export class TexturedPlaneScene {
     this.keyCleanup?.()
     this.mipmapTextures.forEach(t => t.dispose())
     this.material.dispose()
+    this.pointMaterial?.dispose()
+    this.bilinearMaterial?.dispose()
     this.plane.geometry.dispose()
     this.clear3DScene()
     this.renderer.dispose()

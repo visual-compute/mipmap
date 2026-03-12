@@ -3,7 +3,7 @@ import { useViewStore } from '../stores/viewStore'
 import { useTextureLoader } from '../hooks/useTextureLoader'
 
 export function Controls() {
-  const { viewMode, setViewMode, sceneType, setSceneType } = useViewStore()
+  const { viewMode, setViewMode, sceneType, setSceneType, filterMode, setFilterMode } = useViewStore()
   const { loadFromFile } = useTextureLoader()
   const fileRef = useRef<HTMLInputElement>(null)
   const [showHelp, setShowHelp] = useState(false)
@@ -56,6 +56,28 @@ export function Controls() {
           active={viewMode === 'levels'}
           label="MIP LEVELS"
           onClick={() => setViewMode('levels')}
+          position="right"
+        />
+      </div>
+
+      {/* Filter mode toggle */}
+      <div className="flex">
+        <ModeButton
+          active={filterMode === 'point'}
+          label="POINT"
+          onClick={() => setFilterMode('point')}
+          position="left"
+        />
+        <ModeButton
+          active={filterMode === 'bilinear'}
+          label="BILINEAR"
+          onClick={() => setFilterMode('bilinear')}
+          position="middle"
+        />
+        <ModeButton
+          active={filterMode === 'trilinear'}
+          label="TRILINEAR"
+          onClick={() => setFilterMode('trilinear')}
           position="right"
         />
       </div>
@@ -129,7 +151,7 @@ function ModeButton({
   active: boolean
   label: string
   onClick: () => void
-  position: 'left' | 'right'
+  position: 'left' | 'middle' | 'right'
 }) {
   return (
     <button
@@ -137,7 +159,7 @@ function ModeButton({
       className="px-4 py-1.5 text-xs font-bold uppercase transition-transform"
       style={{
         border: 'var(--border)',
-        borderRight: position === 'left' ? 'none' : 'var(--border)',
+        borderRight: position === 'right' ? 'var(--border)' : 'none',
         background: active ? '#111' : '#FFF',
         color: active ? '#FFF' : '#111',
         boxShadow: active ? 'none' : undefined,

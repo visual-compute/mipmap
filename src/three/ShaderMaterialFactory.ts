@@ -8,7 +8,7 @@ void main() {
 }
 `
 
-export type SamplingMode = 'nearest' | 'bilinear' | 'trilinear' | 'anisotropic' | 'mipVis' | 'autoMip'
+export type SamplingMode = 'nearest' | 'bilinear' | 'trilinear' | 'anisotropic' | 'mipVis' | 'autoMip' | 'noMip'
 
 import pointSampleFrag from '../shaders/pointSample.frag.glsl'
 import bilinearSampleFrag from '../shaders/bilinearSample.frag.glsl'
@@ -16,6 +16,7 @@ import trilinearSampleFrag from '../shaders/trilinearSample.frag.glsl'
 import anisotropicSampleFrag from '../shaders/anisotropicSample.frag.glsl'
 import mipLevelVisFrag from '../shaders/mipLevelVis.frag.glsl'
 import autoMipFrag from '../shaders/autoMip.frag.glsl'
+import noMipFrag from '../shaders/noMip.frag.glsl'
 
 const fragShaders: Record<SamplingMode, string> = {
   nearest: pointSampleFrag,
@@ -24,6 +25,7 @@ const fragShaders: Record<SamplingMode, string> = {
   anisotropic: anisotropicSampleFrag,
   mipVis: mipLevelVisFrag,
   autoMip: autoMipFrag,
+  noMip: noMipFrag,
 }
 
 export function createDataTexture(imageData: ImageData): THREE.DataTexture {
@@ -51,6 +53,7 @@ export function createSamplingMaterial(
     maxAniso?: number
     autoMipMode?: number      // 0=textured, 1=level colors, 2=locked
     lockedLevel?: number
+    filterMode?: number       // 0=point, 1=bilinear (for noMip shader)
   } = {}
 ): THREE.ShaderMaterial {
   const uniforms: Record<string, THREE.IUniform> = {}
@@ -77,6 +80,7 @@ export function createSamplingMaterial(
   uniforms['u_maxAniso'] = { value: options.maxAniso ?? 8 }
   uniforms['u_mode'] = { value: options.autoMipMode ?? 0 }
   uniforms['u_lockedLevel'] = { value: options.lockedLevel ?? 0 }
+  uniforms['u_filterMode'] = { value: options.filterMode ?? 0 }
 
   return new THREE.ShaderMaterial({
     vertexShader,
