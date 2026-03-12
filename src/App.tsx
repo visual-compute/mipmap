@@ -100,11 +100,12 @@ export default function App() {
     if (!sceneRef.current || !canvasRef.current || !activeTexture) return
     if (sceneRef.current.dragging) { setCursorMipLevel(null); return }
     const rect = canvasRef.current.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
+    const dpr = canvasRef.current.width / rect.width
+    const x = (e.clientX - rect.left) * dpr
+    const y = (e.clientY - rect.top) * dpr
     const level = sceneRef.current.estimateMipLevelAtScreen(
       x, y,
-      rect.width, rect.height,
+      canvasRef.current.width, canvasRef.current.height,
       activeTexture.width
     )
     setCursorMipLevel(level !== null ? Math.max(0, level) : null)

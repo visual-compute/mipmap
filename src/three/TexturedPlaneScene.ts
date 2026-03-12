@@ -468,7 +468,8 @@ export class TexturedPlaneScene {
     )
     const raycaster = new THREE.Raycaster()
     raycaster.setFromCamera(ndc, this.camera)
-    const hits = raycaster.intersectObject(this.plane)
+    const targets = this.plane.visible ? [this.plane] : this.sceneMeshes
+    const hits = raycaster.intersectObjects(targets)
     if (hits.length > 0 && hits[0].uv) {
       return [hits[0].uv.x, hits[0].uv.y]
     }
