@@ -1,0 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
+@import "tailwindcss";
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Space Mono', monospace;
+  background: #FAFAF5;
+  color: #111;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  width: 100vw;
+  height: 100vh;
+}
+
+/* Neo-brutalism base tokens */
+:root {
+  --border: 3px solid #111;
+  --shadow: 4px 4px 0px #111;
+  --shadow-sm: 2px 2px 0px #111;
+  --radius: 0px;
+  --bg: #FAFAF5;
+  --bg-card: #FFF;
+  --accent-red: #FF3E3E;
+  --accent-orange: #FF8C00;
+  --accent-yellow: #FFD600;
+  --accent-green: #00C853;
+  --accent-cyan: #00BCD4;
+  --accent-blue: #2962FF;
+  --accent-purple: #7C4DFF;
+  --accent-pink: #FF4081;
+}
+
+/* Kill all default focus rings, replace with brutalist outline */
+*:focus-visible {
+  outline: 3px solid #111;
+  outline-offset: 2px;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 8px;
+  background: #E0E0E0;
+  border: 2px solid #111;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: #111;
+  cursor: pointer;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: #111;
+  border: none;
+  cursor: pointer;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: #111;
+}
+
+/* KaTeX sizing */
+.katex { font-size: 0.95em; }
