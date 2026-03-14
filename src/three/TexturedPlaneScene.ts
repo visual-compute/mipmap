@@ -233,6 +233,7 @@ export class TexturedPlaneScene {
       totalLevels: this.mipmapTextures.length,
       maxAniso: 8,
       uvScale: this.uvScale,
+      autoMipMode: (this.currentOptions as { autoMipMode?: number }).autoMipMode ?? 0,
     })
   }
 
@@ -257,8 +258,10 @@ export class TexturedPlaneScene {
   }
 
   setAutoMipMode(modeInt: number) {
-    if (this.material.uniforms['u_mode']) {
-      this.material.uniforms['u_mode'].value = modeInt
+    for (const mat of [this.material, this.anisotropicMaterial]) {
+      if (mat?.uniforms['u_mode']) {
+        mat.uniforms['u_mode'].value = modeInt
+      }
     }
     (this.currentOptions as { autoMipMode?: number }).autoMipMode = modeInt
   }
@@ -325,6 +328,11 @@ export class TexturedPlaneScene {
     } else {
       this.swapMaterial(this.material)
     }
+    // Carry over u_mode to the newly active material
+    const modeInt = (this.currentOptions as {
+      autoMipMode?: number
+    }).autoMipMode ?? 0
+    this.setAutoMipMode(modeInt)
   }
 
   render() {
@@ -543,6 +551,11 @@ export class TexturedPlaneScene {
 
     const rhoX = Math.sqrt(dudx * dudx + dvdx * dvdx)
     const rhoY = Math.sqrt(dudy * dudy + dvdy * dvdy)
+
+    // Anisotropic uses the minor axis for mip level selection
+    if (this.currentFilterMode === 'anisotropic') {
+      return Math.log2(Math.max(Math.min(rhoX, rhoY), 1))
+    }
     return Math.log2(Math.max(Math.max(rhoX, rhoY), 1))
   }
 }

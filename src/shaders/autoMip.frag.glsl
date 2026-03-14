@@ -24,7 +24,7 @@ uniform int u_totalLevels;
 uniform int u_mode; // 0 = trilinear textured, 1 = level colors, 2 = locked to u_lockedLevel
 uniform float u_lockedLevel;
 
-// Mip level colors — distinct, bold, flat
+// Mip level colors
 vec3 levelColor(int level) {
   if (level == 0) return vec3(1.0, 0.24, 0.24);   // red
   if (level == 1) return vec3(1.0, 0.55, 0.0);     // orange

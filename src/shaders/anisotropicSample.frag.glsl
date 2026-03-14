@@ -21,7 +21,20 @@ uniform vec2 u_texSize6;
 uniform vec2 u_texSize7;
 
 uniform int u_totalLevels;
+uniform int u_mode; // 0 = trilinear textured, 1 = level colors, 2 = locked to u_lockedLevel
 uniform int u_maxAniso;
+
+// Mip level colors
+vec3 levelColor(int level) {
+  if (level == 0) return vec3(1.0, 0.24, 0.24);   // red
+  if (level == 1) return vec3(1.0, 0.55, 0.0);     // orange
+  if (level == 2) return vec3(1.0, 0.84, 0.0);     // yellow
+  if (level == 3) return vec3(0.0, 0.78, 0.33);    // green
+  if (level == 4) return vec3(0.0, 0.74, 0.83);    // cyan
+  if (level == 5) return vec3(0.16, 0.38, 1.0);    // blue
+  if (level == 6) return vec3(0.49, 0.30, 1.0);    // purple
+  return vec3(1.0, 0.25, 0.50);                     // pink
+}
 
 vec4 bilinearAt(sampler2D tex, vec2 texSize, vec2 uv) {
   vec2 maxCoord = texSize - 1.0;
@@ -87,5 +100,15 @@ void main() {
     result += s;
   }
 
-  gl_FragColor = result / float(numSamples);
+  vec4 texColor = result / float(numSamples);
+
+  if (u_mode == 1) {
+    // Color-coded mip levels — show the actual level used for sampling (minor axis)
+    int lvl = int(clamp(floor(level + 0.5), 0.0, float(u_totalLevels - 1)));
+    vec3 col = levelColor(lvl);
+    gl_FragColor = vec4(col * 0.7 + texColor.rgb * 0.3, 1.0);
+    return;
+  }
+
+  gl_FragColor = texColor;
 }

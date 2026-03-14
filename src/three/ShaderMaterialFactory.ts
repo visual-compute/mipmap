@@ -79,7 +79,7 @@ export function createSamplingMaterial(
   uniforms['u_mipLevel'] = { value: options.mipLevel ?? 0 }
   uniforms['u_totalLevels'] = { value: options.totalLevels ?? mipmapTextures.length }
   uniforms['u_showLevelColors'] = { value: options.showLevelColors ?? false }
-  uniforms['u_maxAniso'] = { value: options.maxAniso ?? 8 }
+  uniforms['u_maxAniso'] = { value: options.maxAniso ?? 16 }
   uniforms['u_mode'] = { value: options.autoMipMode ?? 0 }
   uniforms['u_lockedLevel'] = { value: options.lockedLevel ?? 0 }
   uniforms['u_filterMode'] = { value: options.filterMode ?? 0 }
