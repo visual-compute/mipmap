@@ -3,21 +3,23 @@ import { useTextureStore } from '../stores/textureStore'
 import { generateMipmapPyramid } from '../core/mipmaps'
 import { generateCheckerboard, generateUVGrid, generateTiny4x4, generateFabricTexture } from '../utils/textureGenerators'
 
-export type PresetName = 'checkerboard' | 'uv_grid' | 'fabric' | 'tiny_4x4'
+export type PresetName = 'checker_fine' | 'checker_big' | 'uv_grid' | 'fabric' | 'tiny_4x4'
 
-const presetGenerators: Record<PresetName, () => ImageData> = {
-  checkerboard: () => generateCheckerboard(512, 32),
-  uv_grid: () => generateUVGrid(256),
-  fabric: () => generateFabricTexture(256),
-  tiny_4x4: () => generateTiny4x4(),
+const presets: Record<PresetName, { generate: () => ImageData; uvScale: number }> = {
+  checker_fine: { generate: () => generateCheckerboard(512, 32), uvScale: 1 },
+  checker_big: { generate: () => generateCheckerboard(512, 32), uvScale: 10 },
+  uv_grid: { generate: () => generateUVGrid(256), uvScale: 1 },
+  fabric: { generate: () => generateFabricTexture(256), uvScale: 1 },
+  tiny_4x4: { generate: () => generateTiny4x4(), uvScale: 1 },
 }
 
 export function useTextureLoader() {
   const { setActiveTexture, setMipmapPyramid } = useTextureStore()
 
   const loadPreset = useCallback((name: PresetName) => {
-    const img = presetGenerators[name]()
-    setActiveTexture(img, name)
+    const preset = presets[name]
+    const img = preset.generate()
+    setActiveTexture(img, name, preset.uvScale)
     const pyramid = generateMipmapPyramid(img)
     setMipmapPyramid(pyramid)
   }, [setActiveTexture, setMipmapPyramid])
@@ -55,7 +57,7 @@ export function useTextureLoader() {
 
   // Load default texture on mount
   useEffect(() => {
-    loadPreset('checkerboard')
+    loadPreset('checker_fine')
   }, [])
 
   return { loadPreset, loadFromFile, loadFromImageData }

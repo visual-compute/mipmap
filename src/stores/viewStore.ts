@@ -2,7 +2,7 @@ import { create } from 'zustand'
 
 export type ViewMode = 'textured' | 'levels'
 export type SceneType = 'plane' | '3d'
-export type FilterMode = 'point' | 'bilinear' | 'trilinear'
+export type FilterMode = 'point' | 'bilinear' | 'trilinear' | 'anisotropic'
 
 interface ViewState {
   viewMode: ViewMode
@@ -20,14 +20,14 @@ interface ViewState {
 }
 
 export const useViewStore = create<ViewState>((set) => ({
-  viewMode: 'levels',
+  viewMode: 'textured',
   setViewMode: (m) => set({ viewMode: m }),
   sceneType: 'plane',
   setSceneType: (s) => set({ sceneType: s }),
   filterMode: 'trilinear',
   setFilterMode: (f) => set((state) => ({
     filterMode: f,
-    viewMode: f !== 'trilinear' && state.viewMode === 'levels' ? 'textured' : state.viewMode,
+    viewMode: (f !== 'trilinear' && f !== 'anisotropic') && state.viewMode === 'levels' ? 'textured' : state.viewMode,
   })),
   cameraAngle: 0.55,
   setCameraAngle: (a) => set({ cameraAngle: a }),

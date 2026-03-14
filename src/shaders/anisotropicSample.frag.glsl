@@ -82,8 +82,7 @@ void main() {
   for (int i = 0; i < 16; i++) {
     if (i >= numSamples) break;
     float t = (float(i) + 0.5) / float(numSamples) - 0.5;
-    vec2 sampleUV = vUv + step * t * float(numSamples);
-    sampleUV = clamp(sampleUV, vec2(0.0), vec2(1.0));
+    vec2 sampleUV = fract(vUv + step * t * float(numSamples));
     vec4 s = mix(sampleLevel(lo, sampleUV), sampleLevel(hi, sampleUV), frac);
     result += s;
   }

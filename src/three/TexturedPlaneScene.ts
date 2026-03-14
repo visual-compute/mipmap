@@ -36,6 +36,7 @@ void main() {
 `
 
 const BG_COLOR = new THREE.Color(0xFAFAF5)
+const DEFAULT_UV_SCALE = 1
 
 export class TexturedPlaneScene {
   scene: THREE.Scene
@@ -50,9 +51,11 @@ export class TexturedPlaneScene {
   private sceneEdges: THREE.LineSegments[] = []
   private planeEdge: THREE.LineSegments | null = null
   private currentSceneType: 'plane' | '3d' = 'plane'
-  private currentFilterMode: 'point' | 'bilinear' | 'trilinear' = 'trilinear'
+  private currentFilterMode: 'point' | 'bilinear' | 'trilinear' | 'anisotropic' = 'trilinear'
+  private uvScale: number = DEFAULT_UV_SCALE
   private pointMaterial: THREE.ShaderMaterial | null = null
   private bilinearMaterial: THREE.ShaderMaterial | null = null
+  private anisotropicMaterial: THREE.ShaderMaterial | null = null
 
   // Orbit state
   private orbitTheta = 0
@@ -72,7 +75,7 @@ export class TexturedPlaneScene {
     this.scene.background = BG_COLOR.clone()
 
     // Fog — fades distant geometry into the background
-    this.scene.fog = new THREE.Fog(BG_COLOR, 8, 25)
+    this.scene.fog = new THREE.Fog(BG_COLOR, 15, 60)
 
     this.camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 100)
     this.applyOrbit()
@@ -84,7 +87,7 @@ export class TexturedPlaneScene {
     this.renderer.toneMappingExposure = 1.0
 
     // --- Infinite grid floor ---
-    const gridGeo = new THREE.PlaneGeometry(80, 80, 1, 1)
+    const gridGeo = new THREE.PlaneGeometry(120, 120, 1, 1)
     const gridMat = new THREE.ShaderMaterial({
       vertexShader: gridVertexShader,
       fragmentShader: gridFragmentShader,
@@ -99,7 +102,7 @@ export class TexturedPlaneScene {
     this.scene.add(gridMesh)
 
     // --- Textured plane (the subject) ---
-    const geo = new THREE.PlaneGeometry(8, 8, 1, 1)
+    const geo = new THREE.PlaneGeometry(40, 40, 1, 1)
     this.material = new THREE.ShaderMaterial()
     this.plane = new THREE.Mesh(geo, this.material)
     this.plane.rotation.x = -Math.PI / 2
@@ -209,13 +212,21 @@ export class TexturedPlaneScene {
   private rebuildFilterMaterials() {
     this.pointMaterial?.dispose()
     this.bilinearMaterial?.dispose()
+    this.anisotropicMaterial?.dispose()
     this.pointMaterial = createSamplingMaterial('noMip', this.mipmapTextures, {
       totalLevels: this.mipmapTextures.length,
       filterMode: 0,
+      uvScale: this.uvScale,
     })
     this.bilinearMaterial = createSamplingMaterial('noMip', this.mipmapTextures, {
       totalLevels: this.mipmapTextures.length,
       filterMode: 1,
+      uvScale: this.uvScale,
+    })
+    this.anisotropicMaterial = createSamplingMaterial('anisotropic', this.mipmapTextures, {
+      totalLevels: this.mipmapTextures.length,
+      maxAniso: 8,
+      uvScale: this.uvScale,
     })
   }
 
@@ -231,6 +242,7 @@ export class TexturedPlaneScene {
     this.material = createSamplingMaterial(mode, this.mipmapTextures, {
       ...options,
       totalLevels: this.mipmapTextures.length,
+      uvScale: this.uvScale,
     })
     this.plane.material = this.material
     for (const mesh of this.sceneMeshes) {
@@ -242,6 +254,7 @@ export class TexturedPlaneScene {
     if (this.material.uniforms['u_mode']) {
       this.material.uniforms['u_mode'].value = modeInt
     }
+    (this.currentOptions as { autoMipMode?: number }).autoMipMode = modeInt
   }
 
   setLockedLevel(level: number) {
@@ -259,6 +272,16 @@ export class TexturedPlaneScene {
     }
   }
 
+  setUvScale(scale: number) {
+    this.uvScale = scale
+    // Update all materials that have the uniform
+    for (const mat of [this.material, this.pointMaterial, this.bilinearMaterial, this.anisotropicMaterial]) {
+      if (mat?.uniforms['u_uvScale']) {
+        mat.uniforms['u_uvScale'].value = scale
+      }
+    }
+  }
+
   setMipLevel(level: number) {
     if (this.material.uniforms['u_mipLevel']) {
       this.material.uniforms['u_mipLevel'].value = level
@@ -271,13 +294,28 @@ export class TexturedPlaneScene {
     this.renderer.setSize(width, height)
   }
 
-  setFilterMode(mode: 'point' | 'bilinear' | 'trilinear') {
+  reapplyFilterMode() {
+    const mode = this.currentFilterMode
+    if (mode === 'point' && this.pointMaterial) {
+      this.swapMaterial(this.pointMaterial)
+    } else if (mode === 'bilinear' && this.bilinearMaterial) {
+      this.swapMaterial(this.bilinearMaterial)
+    } else if (mode === 'anisotropic' && this.anisotropicMaterial) {
+      this.swapMaterial(this.anisotropicMaterial)
+    } else {
+      this.swapMaterial(this.material)
+    }
+  }
+
+  setFilterMode(mode: 'point' | 'bilinear' | 'trilinear' | 'anisotropic') {
     if (mode === this.currentFilterMode) return
     this.currentFilterMode = mode
     if (mode === 'point' && this.pointMaterial) {
       this.swapMaterial(this.pointMaterial)
     } else if (mode === 'bilinear' && this.bilinearMaterial) {
       this.swapMaterial(this.bilinearMaterial)
+    } else if (mode === 'anisotropic' && this.anisotropicMaterial) {
+      this.swapMaterial(this.anisotropicMaterial)
     } else {
       this.swapMaterial(this.material)
     }
@@ -365,6 +403,7 @@ export class TexturedPlaneScene {
     this.material.dispose()
     this.pointMaterial?.dispose()
     this.bilinearMaterial?.dispose()
+    this.anisotropicMaterial?.dispose()
     this.plane.geometry.dispose()
     this.clear3DScene()
     this.renderer.dispose()
@@ -488,10 +527,10 @@ export class TexturedPlaneScene {
     const uvD = this.getUVAtScreenPos(x, y + 1, canvasWidth, canvasHeight)
     if (!uvR || !uvD) return null
 
-    const dudx = (uvR[0] - uv[0]) * texWidth
-    const dvdx = (uvR[1] - uv[1]) * texWidth
-    const dudy = (uvD[0] - uv[0]) * texWidth
-    const dvdy = (uvD[1] - uv[1]) * texWidth
+    const dudx = (uvR[0] - uv[0]) * texWidth * this.uvScale
+    const dvdx = (uvR[1] - uv[1]) * texWidth * this.uvScale
+    const dudy = (uvD[0] - uv[0]) * texWidth * this.uvScale
+    const dvdy = (uvD[1] - uv[1]) * texWidth * this.uvScale
 
     const rhoX = Math.sqrt(dudx * dudx + dvdx * dvdx)
     const rhoY = Math.sqrt(dudy * dudy + dvdy * dvdy)
