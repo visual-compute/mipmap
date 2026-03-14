@@ -175,8 +175,8 @@ export default function App() {
 function PresetBar({ onSelect }: { onSelect: (name: PresetName) => void }) {
   const sourceName = useTextureStore(s => s.sourceName)
   const presets: { id: PresetName; label: string }[] = [
+    { id: 'checker', label: 'CHECKER' },
     { id: 'checker_fine', label: 'CHECKER FINE' },
-    { id: 'checker_big', label: 'CHECKER BIG' },
     { id: 'uv_grid', label: 'UV GRID' },
     { id: 'fabric', label: 'FABRIC' },
     { id: 'tiny_4x4', label: '4×4' },

@@ -18,7 +18,7 @@ interface TextureState {
 export const useTextureStore = create<TextureState>((set) => ({
   activeTexture: null,
   mipmapPyramid: [],
-  sourceName: 'checker_fine',
+  sourceName: 'checker',
   uvScale: 1,
   setActiveTexture: (texture, name, uvScale) => set({ activeTexture: texture, sourceName: name, uvScale: uvScale ?? 1 }),
   setMipmapPyramid: (pyramid) => set({ mipmapPyramid: pyramid }),

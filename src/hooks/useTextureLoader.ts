@@ -3,11 +3,11 @@ import { useTextureStore } from '../stores/textureStore'
 import { generateMipmapPyramid } from '../core/mipmaps'
 import { generateCheckerboard, generateUVGrid, generateTiny4x4, generateFabricTexture } from '../utils/textureGenerators'
 
-export type PresetName = 'checker_fine' | 'checker_big' | 'uv_grid' | 'fabric' | 'tiny_4x4'
+export type PresetName = 'checker' | 'checker_fine' | 'uv_grid' | 'fabric' | 'tiny_4x4'
 
 const presets: Record<PresetName, { generate: () => ImageData; uvScale: number }> = {
-  checker_fine: { generate: () => generateCheckerboard(512, 32), uvScale: 1 },
-  checker_big: { generate: () => generateCheckerboard(512, 32), uvScale: 10 },
+  checker: { generate: () => generateCheckerboard(512, 32), uvScale: 1 },
+  checker_fine: { generate: () => generateCheckerboard(512, 32), uvScale: 10 },
   uv_grid: { generate: () => generateUVGrid(256), uvScale: 1 },
   fabric: { generate: () => generateFabricTexture(256), uvScale: 1 },
   tiny_4x4: { generate: () => generateTiny4x4(), uvScale: 1 },
@@ -57,7 +57,7 @@ export function useTextureLoader() {
 
   // Load default texture on mount
   useEffect(() => {
-    loadPreset('checker_fine')
+    loadPreset('checker')
   }, [])
 
   return { loadPreset, loadFromFile, loadFromImageData }
