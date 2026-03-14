@@ -152,6 +152,9 @@ export class TexturedPlaneScene {
         const panSpeed = 0.004 * this.orbitDist
         this.orbitTarget.addScaledVector(right, dx * panSpeed)
         this.orbitTarget.addScaledVector(up, dy * panSpeed)
+        // When panning, 
+        // prevent the camera from getting below the plane
+        this.orbitTarget.y = Math.max(0, this.orbitTarget.y)
         this.applyOrbit()
       } else {
         this.orbitTheta -= dx * 0.004
@@ -194,8 +197,11 @@ export class TexturedPlaneScene {
     this.camera.position.set(
       this.orbitTarget.x + x,
       this.orbitTarget.y + y,
-      this.orbitTarget.z + z
-    )
+      // When orbiting,
+      // prevent the camera from ever going below the plane
+      Math.max(0,
+        this.orbitTarget.z + z
+      ))
     this.camera.lookAt(this.orbitTarget)
   }
 
@@ -378,6 +384,9 @@ export class TexturedPlaneScene {
 
     if (move.lengthSq() > 0) {
       this.orbitTarget.add(move)
+      // When moving the camera downwards,
+      // prevent the camera from getting below the plane
+      this.orbitTarget.y = Math.max(0, this.orbitTarget.y)
       this.applyOrbit()
     }
   }
