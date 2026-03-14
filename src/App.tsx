@@ -18,7 +18,7 @@ export default function App() {
   const containerRef = useRef<HTMLDivElement>(null)
   const sceneRef = useRef<TexturedPlaneScene | null>(null)
 
-  const { mipmapPyramid, activeTexture } = useTextureStore()
+  const { mipmapPyramid, activeTexture, uvScale } = useTextureStore()
   const { viewMode, hoveredLevel, setCursorMipLevel, sceneType, filterMode } = useViewStore()
   const { loadPreset } = useTextureLoader()
 
@@ -65,7 +65,15 @@ export default function App() {
     sceneRef.current.setMode('autoMip', {
       autoMipMode: viewMode === 'levels' ? 1 : 0,
     })
+    // Re-apply filter mode since setMode resets to the autoMip material
+    sceneRef.current.reapplyFilterMode()
   }, [mipmapPyramid])
+
+  // Update UV scale
+  useEffect(() => {
+    if (!sceneRef.current) return
+    sceneRef.current.setUvScale(uvScale)
+  }, [uvScale])
 
   // Update view mode
   useEffect(() => {
@@ -139,21 +147,7 @@ export default function App() {
               onMouseLeave={handleCanvasMouseLeave}
             />
             <MipLevelTooltip />
-            {filterMode !== 'trilinear' && (
-              <div
-                className="absolute top-4 right-4 px-3 py-2 text-xs font-bold uppercase pointer-events-none"
-                style={{
-                  border: 'var(--border)',
-                  background: filterMode === 'point' ? '#FF3E3E' : '#FF8C00',
-                  color: '#FFF',
-                  zIndex: 11,
-                }}
-              >
-                {filterMode === 'point'
-                  ? 'Point sampling — no filtering, no mipmaps'
-                  : 'Bilinear only — no mipmaps'}
-              </div>
-            )}
+            <FilterModeLabel filterMode={filterMode} />
           </div>
           <Controls />
         </div>
@@ -181,7 +175,8 @@ export default function App() {
 function PresetBar({ onSelect }: { onSelect: (name: PresetName) => void }) {
   const sourceName = useTextureStore(s => s.sourceName)
   const presets: { id: PresetName; label: string }[] = [
-    { id: 'checkerboard', label: 'CHECKER' },
+    { id: 'checker', label: 'CHECKER' },
+    { id: 'checker_fine', label: 'CHECKER FINE' },
     { id: 'uv_grid', label: 'UV GRID' },
     { id: 'fabric', label: 'FABRIC' },
     { id: 'tiny_4x4', label: '4×4' },
@@ -210,9 +205,35 @@ function PresetBar({ onSelect }: { onSelect: (name: PresetName) => void }) {
   )
 }
 
+const FILTER_MODE_INFO: Record<string, { label: string; color: string; textColor: string }> = {
+  point: { label: 'Point sampling — no filtering, no mipmaps', color: '#FF3E3E', textColor: '#FFF' },
+  bilinear: { label: 'Bilinear — interpolates nearby texels, no mipmaps', color: '#FF8C00', textColor: '#FFF' },
+  trilinear: { label: 'Trilinear — bilinear + blends between mip levels', color: '#00C853', textColor: '#FFF' },
+  anisotropic: { label: 'Anisotropic — multiple samples along stretch axis', color: '#2962FF', textColor: '#FFF' },
+}
+
+function FilterModeLabel({ filterMode }: { filterMode: string }) {
+  const info = FILTER_MODE_INFO[filterMode]
+  if (!info) return null
+  return (
+    <div
+      className="absolute top-4 right-4 px-3 py-2 text-xs font-bold uppercase pointer-events-none"
+      style={{
+        border: 'var(--border)',
+        background: info.color,
+        color: info.textColor,
+        zIndex: 11,
+      }}
+    >
+      {info.label}
+    </div>
+  )
+}
+
 function MipLevelTooltip() {
   const cursorLevel = useViewStore(s => s.cursorMipLevel)
-  if (cursorLevel === null) return null
+  const filterMode = useViewStore(s => s.filterMode)
+  if (cursorLevel === null || (filterMode !== 'trilinear' && filterMode !== 'anisotropic')) return null
 
   const level = Math.round(cursorLevel)
   const color = LEVEL_COLORS[Math.min(level, LEVEL_COLORS.length - 1)]

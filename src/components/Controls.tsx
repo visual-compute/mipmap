@@ -57,7 +57,7 @@ export function Controls() {
           label="MIP LEVELS"
           onClick={() => setViewMode('levels')}
           position="right"
-          disabled={filterMode !== 'trilinear'}
+          disabled={filterMode !== 'trilinear' && filterMode !== 'anisotropic'}
         />
       </div>
 
@@ -79,6 +79,12 @@ export function Controls() {
           active={filterMode === 'trilinear'}
           label="TRILINEAR"
           onClick={() => setFilterMode('trilinear')}
+          position="middle"
+        />
+        <ModeButton
+          active={filterMode === 'anisotropic'}
+          label="ANISO"
+          onClick={() => setFilterMode('anisotropic')}
           position="right"
         />
       </div>

@@ -30,9 +30,10 @@ vec4 pointAt(vec2 uv) {
 }
 
 void main() {
+  vec2 tiledUv = fract(vUv);
   if (u_filterMode == 1) {
-    gl_FragColor = bilinearAt(vUv);
+    gl_FragColor = bilinearAt(tiledUv);
   } else {
-    gl_FragColor = pointAt(vUv);
+    gl_FragColor = pointAt(tiledUv);
   }
 }

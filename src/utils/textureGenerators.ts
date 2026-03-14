@@ -1,7 +1,7 @@
 export function generateCheckerboard(size: number = 512, gridLines: number = 32): ImageData {
   const data = new Uint8ClampedArray(size * size * 4)
   const cellSize = size / gridLines
-  const lineWidth = Math.max(2, Math.round(cellSize * 0.15))
+  const lineWidth = Math.max(3, Math.round(cellSize * 0.2))
 
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {

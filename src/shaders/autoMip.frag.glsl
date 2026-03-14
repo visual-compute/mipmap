@@ -85,10 +85,12 @@ float computeMipLevel() {
 void main() {
   float autoLevel = computeMipLevel();
 
+  vec2 tiledUv = fract(vUv);
+
   if (u_mode == 2) {
     // Locked to a specific level
     float d = clamp(u_lockedLevel, 0.0, float(u_totalLevels - 1));
-    gl_FragColor = trilinearSample(d, vUv);
+    gl_FragColor = trilinearSample(d, tiledUv);
     return;
   }
 
@@ -97,11 +99,11 @@ void main() {
     int level = int(clamp(floor(autoLevel + 0.5), 0.0, float(u_totalLevels - 1)));
     vec3 col = levelColor(level);
     // Slight texture detail mixed in
-    vec4 tex = trilinearSample(autoLevel, vUv);
+    vec4 tex = trilinearSample(autoLevel, tiledUv);
     gl_FragColor = vec4(col * 0.7 + tex.rgb * 0.3, 1.0);
     return;
   }
 
   // Mode 0: normal trilinear with auto mip
-  gl_FragColor = trilinearSample(autoLevel, vUv);
+  gl_FragColor = trilinearSample(autoLevel, tiledUv);
 }

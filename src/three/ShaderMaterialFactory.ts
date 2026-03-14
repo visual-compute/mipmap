@@ -1,9 +1,10 @@
 import * as THREE from 'three'
 
 const vertexShader = `
+uniform float u_uvScale;
 varying vec2 vUv;
 void main() {
-  vUv = uv;
+  vUv = uv * u_uvScale;
   gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 }
 `
@@ -54,6 +55,7 @@ export function createSamplingMaterial(
     autoMipMode?: number      // 0=textured, 1=level colors, 2=locked
     lockedLevel?: number
     filterMode?: number       // 0=point, 1=bilinear (for noMip shader)
+    uvScale?: number           // UV tiling factor
   } = {}
 ): THREE.ShaderMaterial {
   const uniforms: Record<string, THREE.IUniform> = {}
@@ -81,6 +83,7 @@ export function createSamplingMaterial(
   uniforms['u_mode'] = { value: options.autoMipMode ?? 0 }
   uniforms['u_lockedLevel'] = { value: options.lockedLevel ?? 0 }
   uniforms['u_filterMode'] = { value: options.filterMode ?? 0 }
+  uniforms['u_uvScale'] = { value: options.uvScale ?? 1.0 }
 
   return new THREE.ShaderMaterial({
     vertexShader,

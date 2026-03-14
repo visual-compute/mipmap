@@ -10,14 +10,16 @@ interface TextureState {
   activeTexture: ImageData | null
   mipmapPyramid: MipmapLevel[]
   sourceName: string
-  setActiveTexture: (texture: ImageData, name: string) => void
+  uvScale: number
+  setActiveTexture: (texture: ImageData, name: string, uvScale?: number) => void
   setMipmapPyramid: (pyramid: MipmapLevel[]) => void
 }
 
 export const useTextureStore = create<TextureState>((set) => ({
   activeTexture: null,
   mipmapPyramid: [],
-  sourceName: 'checkerboard',
-  setActiveTexture: (texture, name) => set({ activeTexture: texture, sourceName: name }),
+  sourceName: 'checker',
+  uvScale: 1,
+  setActiveTexture: (texture, name, uvScale) => set({ activeTexture: texture, sourceName: name, uvScale: uvScale ?? 1 }),
   setMipmapPyramid: (pyramid) => set({ mipmapPyramid: pyramid }),
 }))
