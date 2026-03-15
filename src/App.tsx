@@ -5,6 +5,8 @@ import { useTextureLoader } from './hooks/useTextureLoader'
 import { TexturedPlaneScene } from './three/TexturedPlaneScene'
 import { MipmapPyramid } from './components/MipmapPyramid'
 import { Controls } from './components/Controls'
+import { DemoOverlay } from './components/DemoOverlay'
+import { useDemoPlayer } from './demo/useDemoPlayer'
 import type { PresetName } from './hooks/useTextureLoader'
 
 // Mip level colors — match shader
@@ -21,6 +23,7 @@ export default function App() {
   const { mipmapPyramid, activeTexture, uvScale } = useTextureStore()
   const { viewMode, hoveredLevel, setCursorMipLevel, sceneType, filterMode } = useViewStore()
   const { loadPreset } = useTextureLoader()
+  const demo = useDemoPlayer(sceneRef, canvasRef, loadPreset)
 
   // Boot scene
   useEffect(() => {
@@ -146,8 +149,19 @@ export default function App() {
               onMouseMove={handleCanvasMouseMove}
               onMouseLeave={handleCanvasMouseLeave}
             />
-            <MipLevelTooltip />
-            <FilterModeLabel filterMode={filterMode} />
+            {!demo.playing && <MipLevelTooltip />}
+            {!demo.playing && <FilterModeLabel filterMode={filterMode} />}
+            <DemoOverlay
+              playing={demo.playing}
+              caption={demo.caption}
+              progress={demo.progress}
+              highlight={demo.highlight}
+              fullPage={demo.fullPage}
+              audioFile={demo.audioFile}
+              onAudioFileChange={demo.setAudioFile}
+              onStart={demo.start}
+              onStop={demo.stop}
+            />
           </div>
           <Controls />
         </div>
@@ -183,7 +197,7 @@ function PresetBar({ onSelect }: { onSelect: (name: PresetName) => void }) {
   ]
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2" data-demo="texture-bar">
       <span className="text-[10px] font-bold uppercase opacity-40 mr-1">Texture</span>
       {presets.map(p => (
         <button

@@ -29,7 +29,7 @@ export function Controls() {
       onDrop={handleDrop}
     >
       {/* Scene type toggle */}
-      <div className="flex">
+      <div className="flex" data-demo="scene-group">
         <ModeButton
           active={sceneType === 'plane'}
           label="PLANE"
@@ -62,7 +62,7 @@ export function Controls() {
       </div>
 
       {/* Filter mode toggle */}
-      <div className="flex">
+      <div className="flex" data-demo="filter-group">
         <ModeButton
           active={filterMode === 'point'}
           label="POINT"
