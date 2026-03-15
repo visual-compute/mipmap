@@ -1,73 +1,50 @@
-# React + TypeScript + Vite
+# Mipmap Explorer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An interactive tool for understanding texture filtering and mipmapping in real time.
 
-Currently, two official plugins are available:
+**[Live Demo](https://visual-compute.github.io/mipmap/)**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## What it does
 
-## React Compiler
+Mipmap Explorer lets you see exactly how different texture filtering modes affect rendering. You can switch between filters, swap textures, and move the camera — all while watching the results update instantly.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Filter modes
 
-## Expanding the ESLint configuration
+- **Point** — Nearest-texel lookup. No filtering, no mipmaps. Shows raw aliasing artifacts.
+- **Bilinear** — Interpolates between neighboring texels. Smoother than point, but still no mipmaps.
+- **Trilinear** — Bilinear + blending between mip levels. Removes mip boundaries but can overblur.
+- **Anisotropic** — Samples along the viewing direction. Best quality for surfaces at steep angles.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Textures
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+Five built-in presets: **Checker**, **Checker Fine**, **UV Grid**, **Fabric**, and **4x4**. You can also upload your own PNG/JPEG — it will be auto-resized to power-of-two and mipmapped.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### Scenes
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+- **Plane** — A flat textured surface stretching into the distance. Great for seeing how filtering changes with distance.
+- **3D** — A full scene with geometry. Move the camera freely to explore filtering from different angles.
+
+### Mip level visualization
+
+Toggle the **Levels** view to color-code which mip level is being sampled at each pixel. Hover over the 3D view to see the exact mip level at your cursor.
+
+### Mipmap pyramid
+
+The sidebar shows every level of the generated mipmap chain. Hover a level to lock the 3D view to that level.
+
+### Controls
+
+- **Drag** to orbit, **right-drag** to pan, **scroll** to zoom
+- **WASD** to move, **Q/E** for vertical
+- **Camera angle** slider (oblique to top-down)
+
+## Getting started
+
+```bash
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Tech stack
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+React, Three.js, Zustand, Tailwind CSS, TypeScript, Vite. Custom GLSL shaders handle all filtering modes.

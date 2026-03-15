@@ -130,7 +130,16 @@ export default function App() {
         className="flex items-center justify-between px-6 py-3"
         style={{ borderBottom: 'var(--border)' }}
       >
-        <h1 className="text-2xl font-bold tracking-tight uppercase">Mipmap Explorer</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-bold tracking-tight uppercase">Mipmap Explorer</h1>
+          <iframe
+            src="https://ghbtns.com/github-btn.html?user=visual-compute&repo=mipmap&type=star&count=true"
+            width="90"
+            height="20"
+            title="GitHub Stars"
+            style={{ border: 0, overflow: 'hidden' }}
+          />
+        </div>
         <PresetBar onSelect={loadPreset} />
       </header>
 
@@ -253,3 +262,4 @@ function MipLevelTooltip() {
     </div>
   )
 }
+
