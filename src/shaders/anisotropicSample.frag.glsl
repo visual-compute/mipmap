@@ -79,10 +79,14 @@ void main() {
 
   // Anisotropy ratio, clamped to max
   float aniso = clamp(majorLen / max(minorLen, 0.001), 1.0, float(u_maxAniso));
-  int numSamples = int(aniso);
+  int numSamples = int(ceil(aniso));
+  numSamples = clamp(numSamples, 1, 16);
 
-  // Use minor axis for mip level
-  float level = log2(max(minorLen, 1.0));
+  // Use effective minor footprint after clamping anisotropy.
+  // When true anisotropy exceeds maxAniso, using the raw minor axis picks too fine
+  // a mip and causes shimmering/moire in the distance.
+  float effectiveMinor = majorLen / float(numSamples);
+  float level = log2(max(effectiveMinor, 1.0));
   level = clamp(level, 0.0, float(u_totalLevels - 1));
   int lo = int(floor(level));
   int hi = min(lo + 1, u_totalLevels - 1);

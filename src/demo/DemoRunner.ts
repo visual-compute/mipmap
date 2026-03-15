@@ -340,6 +340,49 @@ export class DemoRunner {
             ctx.strokeRect(x, y, w, h)
             ctx.strokeRect(x, y, w, h) // double stroke for stronger glow
             ctx.restore()
+
+            // Red arrow pointing to the highlighted element
+            const arrowLen = 60 * scaleX
+            const arrowSize = 12 * scaleX
+            const cx = x + w / 2
+            // If element is in the top third, arrow points up from below; otherwise down from above
+            const pointUp = y < vh / 3
+
+            ctx.save()
+            ctx.strokeStyle = '#FF3E3E'
+            ctx.fillStyle = '#FF3E3E'
+            ctx.lineWidth = 3 * scaleX
+            ctx.shadowColor = 'rgba(255, 62, 62, 0.6)'
+            ctx.shadowBlur = 8 * scaleX
+
+            if (pointUp) {
+              const arrowTipY = y + h + 8 * scaleY
+              const arrowStartY = arrowTipY + arrowLen
+              ctx.beginPath()
+              ctx.moveTo(cx, arrowStartY)
+              ctx.lineTo(cx, arrowTipY)
+              ctx.stroke()
+              ctx.beginPath()
+              ctx.moveTo(cx, arrowTipY)
+              ctx.lineTo(cx - arrowSize, arrowTipY + arrowSize * 1.5)
+              ctx.lineTo(cx + arrowSize, arrowTipY + arrowSize * 1.5)
+              ctx.closePath()
+              ctx.fill()
+            } else {
+              const arrowTipY = y - 8 * scaleY
+              const arrowStartY = arrowTipY - arrowLen
+              ctx.beginPath()
+              ctx.moveTo(cx, arrowStartY)
+              ctx.lineTo(cx, arrowTipY)
+              ctx.stroke()
+              ctx.beginPath()
+              ctx.moveTo(cx, arrowTipY)
+              ctx.lineTo(cx - arrowSize, arrowTipY - arrowSize * 1.5)
+              ctx.lineTo(cx + arrowSize, arrowTipY - arrowSize * 1.5)
+              ctx.closePath()
+              ctx.fill()
+            }
+            ctx.restore()
           }
         }
 
@@ -355,7 +398,123 @@ export class DemoRunner {
     }
     ctx.drawImage(this.threeCanvas, 0, 0)
 
+    if (step.magnify) this.drawMagnify(step)
     this.drawOverlayText(step)
+  }
+
+  private drawMagnify(step: DemoStep) {
+    if (!step.magnify) return
+    const ctx = this.compositeCtx
+    const w = this.compositeCanvas.width
+    const h = this.compositeCanvas.height
+
+    for (const m of step.magnify) {
+      const tx = m.targetX * w
+      const ty = m.targetY * h
+      const sx = m.x * w
+      const sy = m.y * h
+      const isRect = !!m.rect
+
+      if (isRect) {
+        const rw = m.rect!.w * w
+        const rh = m.rect!.h * h
+        const srcW = rw / m.zoom
+        const srcH = rh / m.zoom
+        // rectAnchor: 'top' means targetY is the top edge; otherwise it's center
+        const boxLeft = tx - rw / 2
+        const boxTop = m.rectAnchor === 'top' ? ty : ty - rh / 2
+
+        // Dashed line from source to inset center
+        ctx.save()
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'
+        ctx.lineWidth = 1.5
+        ctx.setLineDash([6, 4])
+        ctx.beginPath()
+        ctx.moveTo(sx, sy)
+        ctx.lineTo(boxLeft + rw / 2, boxTop + rh / 2)
+        ctx.stroke()
+        ctx.setLineDash([])
+
+        // Source rectangle indicator
+        ctx.strokeStyle = '#FF3E3E'
+        ctx.lineWidth = 2
+        ctx.strokeRect(sx - srcW / 2, sy - srcH / 2, srcW, srcH)
+
+        // Clip to rectangle
+        ctx.beginPath()
+        ctx.rect(boxLeft, boxTop, rw, rh)
+        ctx.clip()
+
+        // Draw magnified region
+        ctx.drawImage(
+          this.threeCanvas,
+          sx - srcW / 2, sy - srcH / 2, srcW, srcH,
+          boxLeft, boxTop, rw, rh,
+        )
+        ctx.restore()
+
+        // Border
+        ctx.strokeStyle = '#FF3E3E'
+        ctx.lineWidth = 3
+        ctx.strokeRect(boxLeft, boxTop, rw, rh)
+
+        // Label
+        const labelSize = Math.round(rh * 0.08)
+        ctx.font = `700 ${labelSize}px "IBM Plex Mono", monospace`
+        ctx.fillStyle = '#FF3E3E'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'top'
+        ctx.fillText(`${m.zoom}×`, boxLeft + rw / 2, boxTop + rh + 6)
+      } else {
+        const r = m.radius * w
+        const sampleR = r / m.zoom
+
+        // Dashed line from source to inset
+        ctx.save()
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)'
+        ctx.lineWidth = 1.5
+        ctx.setLineDash([6, 4])
+        ctx.beginPath()
+        ctx.moveTo(sx, sy)
+        ctx.lineTo(tx, ty)
+        ctx.stroke()
+        ctx.setLineDash([])
+
+        // Source circle indicator
+        ctx.beginPath()
+        ctx.arc(sx, sy, sampleR, 0, Math.PI * 2)
+        ctx.strokeStyle = '#FF3E3E'
+        ctx.lineWidth = 2
+        ctx.stroke()
+
+        // Clip to circle
+        ctx.beginPath()
+        ctx.arc(tx, ty, r, 0, Math.PI * 2)
+        ctx.clip()
+
+        // Draw magnified region
+        ctx.drawImage(
+          this.threeCanvas,
+          sx - sampleR, sy - sampleR, sampleR * 2, sampleR * 2,
+          tx - r, ty - r, r * 2, r * 2,
+        )
+        ctx.restore()
+
+        // Border ring
+        ctx.beginPath()
+        ctx.arc(tx, ty, r, 0, Math.PI * 2)
+        ctx.strokeStyle = '#FF3E3E'
+        ctx.lineWidth = 3
+        ctx.stroke()
+
+        // Label
+        ctx.font = `700 ${Math.round(r * 0.22)}px "IBM Plex Mono", monospace`
+        ctx.fillStyle = '#FF3E3E'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'top'
+        ctx.fillText(`${m.zoom}×`, tx, ty + r + 6)
+      }
+    }
   }
 
   private drawOverlayText(step: DemoStep) {
@@ -407,19 +566,22 @@ export class DemoRunner {
       const hasDesc = lines.length > 1
       const padding = titleSize * 0.8
       const barHeight = titleSize + (hasDesc ? descSize + padding * 0.3 : 0) + padding * 2
+      // For fullPage steps, shift caption up so it doesn't cover bottom controls
+      const bottomOffset = step.fullPage ? Math.round(h * 0.07) : 0
+      const barY = h - barHeight - bottomOffset
 
       ctx.fillStyle = 'rgba(0, 0, 0, 0.75)'
-      ctx.fillRect(0, h - barHeight, w, barHeight)
+      ctx.fillRect(0, barY, w, barHeight)
 
       ctx.fillStyle = 'rgba(255, 255, 255, 0.3)'
-      ctx.fillRect(0, h - barHeight, w, 1)
+      ctx.fillRect(0, barY, w, 1)
 
       ctx.textAlign = 'center'
 
       // Title line
       const titleY = hasDesc
-        ? h - barHeight / 2 - descSize * 0.35
-        : h - barHeight / 2
+        ? barY + barHeight / 2 - descSize * 0.35
+        : barY + barHeight / 2
       ctx.font = `700 ${titleSize}px "IBM Plex Mono", monospace`
       ctx.fillStyle = '#FFFFFF'
       ctx.textBaseline = 'middle'

@@ -262,7 +262,7 @@ export class TexturedPlaneScene {
     })
     this.anisotropicMaterial = createSamplingMaterial('anisotropic', this.mipmapTextures, {
       totalLevels: this.mipmapTextures.length,
-      maxAniso: 8,
+      maxAniso: 16,
       uvScale: this.uvScale,
       autoMipMode: (this.currentOptions as { autoMipMode?: number }).autoMipMode ?? 0,
     })
