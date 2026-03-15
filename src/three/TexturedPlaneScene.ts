@@ -69,6 +69,7 @@ export class TexturedPlaneScene {
   private mouseCleanup?: () => void
   private keys: Set<string> = new Set()
   private keyCleanup?: () => void
+  private inputDisabled = false
 
   constructor(canvas: HTMLCanvasElement, width: number, height: number) {
     this.scene = new THREE.Scene()
@@ -80,7 +81,7 @@ export class TexturedPlaneScene {
     this.camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 100)
     this.applyOrbit()
 
-    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true })
+    this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true })
     this.renderer.setSize(width, height)
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping
@@ -125,6 +126,7 @@ export class TexturedPlaneScene {
     const onContextMenu = (e: MouseEvent) => e.preventDefault()
 
     const onMouseDown = (e: MouseEvent) => {
+      if (this.inputDisabled) return
       this.lastMouseX = e.clientX
       this.lastMouseY = e.clientY
       if (e.button === 2 || (e.button === 0 && e.shiftKey)) {
@@ -171,6 +173,7 @@ export class TexturedPlaneScene {
 
     const onWheel = (e: WheelEvent) => {
       e.preventDefault()
+      if (this.inputDisabled) return
       this.orbitDist = Math.max(0.8, Math.min(12, this.orbitDist + e.deltaY * 0.005))
       this.applyOrbit()
     }
@@ -188,6 +191,34 @@ export class TexturedPlaneScene {
       window.removeEventListener('mouseup', onMouseUp)
       canvas.removeEventListener('wheel', onWheel)
     }
+  }
+
+  getOrbitState() {
+    return {
+      theta: this.orbitTheta,
+      phi: this.orbitPhi,
+      dist: this.orbitDist,
+      target: this.orbitTarget.clone(),
+    }
+  }
+
+  setOrbitState(s: { theta?: number; phi?: number; dist?: number; targetX?: number; targetY?: number; targetZ?: number }) {
+    if (s.theta !== undefined) this.orbitTheta = s.theta
+    if (s.phi !== undefined) this.orbitPhi = s.phi
+    if (s.dist !== undefined) this.orbitDist = s.dist
+    if (s.targetX !== undefined) this.orbitTarget.x = s.targetX
+    if (s.targetY !== undefined) this.orbitTarget.y = s.targetY
+    if (s.targetZ !== undefined) this.orbitTarget.z = s.targetZ
+    this.applyOrbit()
+  }
+
+  disableInput() {
+    this.inputDisabled = true
+    this.keys.clear()
+  }
+
+  enableInput() {
+    this.inputDisabled = false
   }
 
   private applyOrbit() {
@@ -231,7 +262,7 @@ export class TexturedPlaneScene {
     })
     this.anisotropicMaterial = createSamplingMaterial('anisotropic', this.mipmapTextures, {
       totalLevels: this.mipmapTextures.length,
-      maxAniso: 8,
+      maxAniso: 16,
       uvScale: this.uvScale,
       autoMipMode: (this.currentOptions as { autoMipMode?: number }).autoMipMode ?? 0,
     })
@@ -370,7 +401,7 @@ export class TexturedPlaneScene {
   }
 
   private tickKeys() {
-    if (this.keys.size === 0) return
+    if (this.keys.size === 0 || this.inputDisabled) return
     const speed = 0.06
 
     // Forward/right in the camera's XZ plane
