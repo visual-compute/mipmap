@@ -166,7 +166,7 @@ export class DemoRunner {
 
     this.recorder = new MediaRecorder(combinedStream, {
       mimeType: mimeType || undefined,
-      videoBitsPerSecond: 8_000_000,
+      videoBitsPerSecond: 20_000_000,
     })
     this.recorder.ondataavailable = (e) => {
       if (e.data.size > 0) this.chunks.push(e.data)
